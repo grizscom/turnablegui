@@ -1,0 +1,51 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Android / Gradle
+.gradle/
+build/
+app/build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local config
+local.properties
+*.iml
+.idea/
+.DS_Store
+
+# Signing keys - NEVER commit
+*.jks
+*.keystore
+keystore.properties
+
+# Logs / runtime
+*.log
+turnable.log
+client-config.json
+
+# Generated native binaries
+app/src/main/jniLibs/arm64-v8a/libturnable.so
+app/src/main/jniLibs/armeabi-v7a/libturnable.so
+
+# Third-party cloned source
+third_party/Turnable/
+
+# Release artifacts
+release/
+*.apk
+*.aab
