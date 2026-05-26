@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.graphics.drawable.Icon
 
 class TurnableService : Service() {
 
@@ -105,14 +106,14 @@ class TurnableService : Service() {
             action = Intent.ACTION_MAIN
             addCategory(Intent.CATEGORY_LAUNCHER)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
         } ?: Intent(this, MainActivity::class.java).apply {
             action = Intent.ACTION_MAIN
             addCategory(Intent.CATEGORY_LAUNCHER)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
 
         val stopIntent = Intent(this, TurnableService::class.java).apply {
@@ -139,14 +140,25 @@ class TurnableService : Service() {
             pendingIntentFlags
         )
 
+        val sessionStartedAt = TurnableProcess.sessionStartedAtWallMs()
+        val hasActiveSession = sessionStartedAt > 0L
+
         return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("Turnable GUI")
-            .setContentText(text)
+            .setContentTitle(text)
             .setSmallIcon(android.R.drawable.stat_sys_upload_done)
             .setContentIntent(openAppPendingIntent)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Стоп", stopPendingIntent)
-            .setOngoing(TurnableProcess.isRunning())
-            .setShowWhen(false)
+            .addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
+                    "СТОП",
+                    stopPendingIntent
+                ).build()
+            )
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setShowWhen(hasActiveSession)
+            .setWhen(if (hasActiveSession) sessionStartedAt else System.currentTimeMillis())
+            .setUsesChronometer(hasActiveSession)
             .build()
     }
 
@@ -215,7 +227,7 @@ class TurnableService : Service() {
             updateNotification(TurnableProcess.notificationText())
 
             if (TurnableProcess.isRunning()) {
-                handler.postDelayed(this, 10_000L)
+                handler.postDelayed(this, 2_000L)
             } else {
                 notificationTickerRunning = false
                 stopSelf()

@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import android.app.PendingIntent
 
 class MainActivity : ComponentActivity() {
 
@@ -257,11 +258,11 @@ private fun TurnableScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(126.dp)
+                .height(140.dp)
         ) {
             Column(
-                modifier = Modifier.padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp)
             ) {
                 Text(
                     text = connectionTitle,
@@ -295,7 +296,7 @@ private fun TurnableScreen(
                     Text(
                         text = "Last error: $lastErrorText",
                         style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }

@@ -72,6 +72,9 @@ object TurnableProcess {
     @Volatile
     private var lastRttMs: Long? = null
 
+    @Volatile
+    private var sessionStartedAtWallMs: Long = 0L
+
     fun isRunning(): Boolean {
         return process?.isAlive == true
     }
@@ -107,6 +110,7 @@ object TurnableProcess {
         lastError = null
         lastHealthyAt = 0L
         lastRttMs = null
+        sessionStartedAtWallMs = System.currentTimeMillis()
         childPid = null
         pidFile.delete()
 
@@ -183,6 +187,7 @@ object TurnableProcess {
             process = null
             childPid = null
             setState(TurnableConnectionState.STOPPED)
+            sessionStartedAtWallMs = 0L
             appendLog(logFile, "Stop requested, but Turnable is not running")
             return "Turnable не запущен"
         }
@@ -271,18 +276,38 @@ object TurnableProcess {
         val snapshot = statusSnapshot()
 
         return when (snapshot.state) {
-            TurnableConnectionState.STOPPED -> "Turnable остановлен"
-            TurnableConnectionState.CONNECTING -> "Turnable подключается..."
+            TurnableConnectionState.STOPPED -> {
+                "Остановлен"
+            }
+
+            TurnableConnectionState.CONNECTING -> {
+                "Подключается..."
+            }
+
             TurnableConnectionState.CONNECTED -> {
-                val response = snapshot.responseLine.removePrefix("Server response: ")
-                val healthy = snapshot.healthyLine.removePrefix("Healthy: ")
-                "Turnable подключен · $response · healthy $healthy"
+                val response = snapshot.responseLine
+                    .removePrefix("Server response: ")
+                    .replace("unavailable", "n/a")
+                    .replace("waiting...", "waiting")
+
+                val healthy = snapshot.healthyLine
+                    .removePrefix("Healthy: ")
+                    .replace("waiting...", "waiting")
+
+                "Подключен · Delay $response · Healthy $healthy"
             }
+
             TurnableConnectionState.RECONNECTING -> {
-                val healthy = snapshot.healthyLine.removePrefix("Healthy: ")
-                "Turnable переподключается · healthy $healthy"
+                val healthy = snapshot.healthyLine
+                    .removePrefix("Healthy: ")
+                    .replace("waiting...", "waiting")
+
+                "Переподключение · healthy $healthy"
             }
-            TurnableConnectionState.ERROR -> "Turnable ошибка"
+
+            TurnableConnectionState.ERROR -> {
+                "Ошибка подключения"
+            }
         }
     }
 
@@ -377,6 +402,11 @@ object TurnableProcess {
         process = null
         childPid = null
         getPidFile(context).delete()
+        sessionStartedAtWallMs = 0L
+    }
+
+    fun sessionStartedAtWallMs(): Long {
+        return sessionStartedAtWallMs
     }
 
     private fun startWatchdog(
