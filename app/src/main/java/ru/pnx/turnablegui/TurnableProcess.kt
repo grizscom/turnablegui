@@ -75,6 +75,9 @@ object TurnableProcess {
     @Volatile
     private var sessionStartedAtWallMs: Long = 0L
 
+    @Volatile
+    private var openVpnStartedForCurrentSession: Boolean = false
+
     fun isRunning(): Boolean {
         return process?.isAlive == true
     }
@@ -110,6 +113,7 @@ object TurnableProcess {
         lastError = null
         lastHealthyAt = 0L
         lastRttMs = null
+        openVpnStartedForCurrentSession = false
         sessionStartedAtWallMs = System.currentTimeMillis()
         childPid = null
         pidFile.delete()
@@ -309,6 +313,18 @@ object TurnableProcess {
                 "Ошибка подключения"
             }
         }
+    }
+
+    fun shouldStartOpenVpnNow(): Boolean {
+        val connected = process?.isAlive == true &&
+                connectionState == TurnableConnectionState.CONNECTED
+
+        if (!connected) return false
+        if (openVpnStartedForCurrentSession) return false
+        if (lastHealthyAt <= 0L) return false
+
+        openVpnStartedForCurrentSession = true
+        return true
     }
 
     fun statusSnapshot(): TurnableStatus {

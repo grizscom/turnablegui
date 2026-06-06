@@ -225,6 +225,7 @@ class TurnableService : Service() {
         override fun run() {
             if (!notificationTickerRunning) return
 
+            maybeStartOpenVpnProfile()
             updateNotification(TurnableProcess.notificationText())
 
             if (TurnableProcess.isRunning()) {
@@ -234,5 +235,23 @@ class TurnableService : Service() {
                 stopSelf()
             }
         }
+    }
+
+    private fun maybeStartOpenVpnProfile() {
+        val autostart = SettingsStore.loadOpenVpnAutostart(this)
+        if (!autostart) return
+
+        if (!TurnableProcess.shouldStartOpenVpnNow()) return
+
+        val openVpnPackage = SettingsStore.loadOpenVpnPackage(this)
+        val openVpnProfile = SettingsStore.loadOpenVpnProfileName(this)
+
+        val result = OpenVpnController.connectProfile(
+            context = this,
+            packageName = openVpnPackage,
+            profileName = openVpnProfile
+        )
+
+        android.util.Log.i("TurnableGUI", result)
     }
 }

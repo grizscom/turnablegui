@@ -19,6 +19,10 @@ object SettingsStore {
     private const val KEY_MIN_RESTART_INTERVAL_SEC = "min_restart_interval_sec"
     private const val KEY_CURRENT_PROFILE = "current_profile"
 
+    private const val KEY_OPENVPN_AUTOSTART = "openvpn_autostart"
+    private const val KEY_OPENVPN_PACKAGE = "openvpn_package"
+    private const val KEY_OPENVPN_PROFILE_NAME = "openvpn_profile_name"
+
     const val PROFILE_COUNT = 3
 
     fun loadListenAddress(context: Context): String {
@@ -203,6 +207,102 @@ object SettingsStore {
         saveCurrentProfile(context, p)
         saveListenAddress(context, loadProfileListenAddress(context, p))
         saveConfigText(context, loadProfileConfigText(context, p))
+    }
+
+    fun loadOpenVpnAutostart(context: Context): Boolean {
+        return loadProfileOpenVpnAutostart(
+            context = context,
+            profile = loadCurrentProfile(context)
+        )
+    }
+
+    fun saveOpenVpnAutostart(context: Context, value: Boolean) {
+        saveProfileOpenVpnAutostart(
+            context = context,
+            profile = loadCurrentProfile(context),
+            value = value
+        )
+    }
+
+    fun loadOpenVpnPackage(context: Context): String {
+        return loadProfileOpenVpnPackage(
+            context = context,
+            profile = loadCurrentProfile(context)
+        )
+    }
+
+    fun saveOpenVpnPackage(context: Context, value: String) {
+        saveProfileOpenVpnPackage(
+            context = context,
+            profile = loadCurrentProfile(context),
+            value = value
+        )
+    }
+
+    fun loadOpenVpnProfileName(context: Context): String {
+        return loadProfileOpenVpnProfileName(
+            context = context,
+            profile = loadCurrentProfile(context)
+        )
+    }
+
+    fun saveOpenVpnProfileName(context: Context, value: String) {
+        saveProfileOpenVpnProfileName(
+            context = context,
+            profile = loadCurrentProfile(context),
+            value = value
+        )
+    }
+
+    fun loadProfileOpenVpnAutostart(context: Context, profile: Int): Boolean {
+        val p = profile.coerceIn(1, PROFILE_COUNT)
+
+        return prefs(context).getBoolean(
+            "profile_${p}_openvpn_autostart",
+            prefs(context).getBoolean(KEY_OPENVPN_AUTOSTART, false)
+        )
+    }
+
+    fun saveProfileOpenVpnAutostart(context: Context, profile: Int, value: Boolean) {
+        val p = profile.coerceIn(1, PROFILE_COUNT)
+
+        prefs(context).edit()
+            .putBoolean("profile_${p}_openvpn_autostart", value)
+            .apply()
+    }
+
+    fun loadProfileOpenVpnPackage(context: Context, profile: Int): String {
+        val p = profile.coerceIn(1, PROFILE_COUNT)
+
+        return prefs(context).getString(
+            "profile_${p}_openvpn_package",
+            prefs(context).getString(KEY_OPENVPN_PACKAGE, "de.blinkt.openvpn")
+        ) ?: "de.blinkt.openvpn"
+    }
+
+    fun saveProfileOpenVpnPackage(context: Context, profile: Int, value: String) {
+        val p = profile.coerceIn(1, PROFILE_COUNT)
+
+        prefs(context).edit()
+            .putString("profile_${p}_openvpn_package", value.ifBlank { "de.blinkt.openvpn" })
+            .apply()
+    }
+
+    fun loadProfileOpenVpnProfileName(context: Context, profile: Int): String {
+        val p = profile.coerceIn(1, PROFILE_COUNT)
+
+        return prefs(context).getString(
+            "profile_${p}_openvpn_profile_name",
+            prefs(context).getString(KEY_OPENVPN_PROFILE_NAME, "")
+        ) ?: ""
+    }
+
+    fun saveProfileOpenVpnProfileName(context: Context, profile: Int, value: String) {
+        val p = profile.coerceIn(1, PROFILE_COUNT)
+
+        prefs(context).edit()
+            .putString("profile_${p}_openvpn_profile_name", value)
+            .apply()
     }
 
     private fun prefs(context: Context) =

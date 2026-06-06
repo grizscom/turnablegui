@@ -11,15 +11,15 @@ android {
         }
     }
 
-    defaultConfig {
-        applicationId = "ru.pnx.turnablegui"
-        minSdk = 26
-        targetSdk = 36
-        versionCode = 3
-        versionName = 0.1.2-ovpn"
+defaultConfig {
+    applicationId = "ru.pnx.turnablegui"
+    minSdk = 26
+    targetSdk = 36
+    versionCode = 3
+    versionName = "0.1.2-ovpn"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+}
 
     packaging {
         jniLibs {

@@ -98,6 +98,18 @@ private fun TurnableScreen(
         mutableStateOf(SettingsStore.loadAutoScrollLog(context))
     }
 
+    var openVpnAutostart by rememberSaveable {
+        mutableStateOf(SettingsStore.loadOpenVpnAutostart(context))
+    }
+
+    var openVpnPackage by rememberSaveable {
+        mutableStateOf(SettingsStore.loadOpenVpnPackage(context))
+    }
+
+    var openVpnProfileName by rememberSaveable {
+        mutableStateOf(SettingsStore.loadOpenVpnProfileName(context))
+    }
+
     var autoStartOnOpen by rememberSaveable {
         mutableStateOf(SettingsStore.loadAutoStartOnOpen(context))
     }
@@ -431,10 +443,17 @@ private fun TurnableScreen(
                             modifier = Modifier.weight(1f),
                             onClick = {
                                 currentProfile = profile
+
                                 SettingsStore.loadProfileIntoMain(context, profile)
+
                                 listenAddress = SettingsStore.loadListenAddress(context)
                                 configText = SettingsStore.loadConfigText(context)
                                 profileName = SettingsStore.loadProfileName(context, profile)
+
+                                openVpnAutostart = SettingsStore.loadProfileOpenVpnAutostart(context, profile)
+                                openVpnPackage = SettingsStore.loadProfileOpenVpnPackage(context, profile)
+                                openVpnProfileName = SettingsStore.loadProfileOpenVpnProfileName(context, profile)
+
                                 toast(context, "Загружен профиль $profile")
                             }
                         ) {
@@ -464,7 +483,27 @@ private fun TurnableScreen(
                             listen = listenAddress.trim(),
                             config = configText.trim()
                         )
+
+                        SettingsStore.saveProfileOpenVpnAutostart(
+                            context = context,
+                            profile = currentProfile,
+                            value = openVpnAutostart
+                        )
+
+                        SettingsStore.saveProfileOpenVpnPackage(
+                            context = context,
+                            profile = currentProfile,
+                            value = openVpnPackage
+                        )
+
+                        SettingsStore.saveProfileOpenVpnProfileName(
+                            context = context,
+                            profile = currentProfile,
+                            value = openVpnProfileName
+                        )
+
                         SettingsStore.saveCurrentProfile(context, currentProfile)
+
                         toast(context, "Профиль $currentProfile сохранён")
                     }
                 ) {
@@ -529,6 +568,66 @@ private fun TurnableScreen(
                         SettingsStore.saveAutoScrollLog(context, it)
                     }
                 )
+
+                SettingCheckbox(
+                    checked = openVpnAutostart,
+                    text = "Auto-start OpenVPN after Turnable connected",
+                    onCheckedChange = {
+                        openVpnAutostart = it
+                        SettingsStore.saveProfileOpenVpnAutostart(context, currentProfile, it)
+                    }
+                )
+
+                OutlinedTextField(
+                    value = openVpnPackage,
+                    onValueChange = {
+                        openVpnPackage = it
+                        SettingsStore.saveProfileOpenVpnPackage(context, currentProfile, it)
+                    },
+                    label = { Text("OpenVPN package") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                OutlinedTextField(
+                    value = openVpnProfileName,
+                    onValueChange = {
+                        openVpnProfileName = it
+                        SettingsStore.saveProfileOpenVpnProfileName(context, currentProfile, it)
+                    },
+                    label = { Text("OpenVPN profile name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        val result = OpenVpnController.connectProfile(
+                            context = context,
+                            packageName = openVpnPackage,
+                            profileName = openVpnProfileName
+                        )
+
+                        lastErrorText = result
+                    }
+                ) {
+                    Text("Test OpenVPN profile start")
+                }
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        val result = OpenVpnController.disconnect(
+                            context = context,
+                            packageName = openVpnPackage
+                        )
+
+                        lastErrorText = result
+                    }
+                ) {
+                    Text("Test OpenVPN disconnect")
+                }
 
                 SettingCheckbox(
                     checked = autoStartOnOpen,
