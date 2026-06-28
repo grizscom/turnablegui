@@ -298,7 +298,7 @@ object TurnableProcess {
                     .removePrefix("Healthy: ")
                     .replace("waiting...", "waiting")
 
-                "Подключен · Delay $response · Healthy $healthy"
+                "On · Delay $response · Healthy $healthy"
             }
 
             TurnableConnectionState.RECONNECTING -> {
