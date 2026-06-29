@@ -93,6 +93,9 @@ $env:CXX = $Arm64CC
 go env GOOS GOARCH CGO_ENABLED CC
 
 go build -a -trimpath -ldflags="-s -w" -o (Join-Path $Arm64OutDir "libturnable.so") ./cmd
+if ($LASTEXITCODE -ne 0) {
+    throw "arm64 build failed"
+}
 
 Write-Host ""
 Write-Host "Checking arm64 build info:"
@@ -111,7 +114,9 @@ $env:CXX = $ArmCC
 go env GOOS GOARCH GOARM CGO_ENABLED CC
 
 go build -a -trimpath -ldflags="-s -w" -o (Join-Path $ArmOutDir "libturnable.so") ./cmd
-
+if ($LASTEXITCODE -ne 0) {
+    throw "armeabi-v7a build failed"
+}
 Write-Host ""
 Write-Host "Checking armv7 build info:"
 go version -m (Join-Path $ArmOutDir "libturnable.so")

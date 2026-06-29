@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $Root = Split-Path -Parent $PSScriptRoot
-$Mux = Join-Path $Root "third_party\Turnable\pkg\internal\connection\mux.go"
+$Mux = Join-Path $Root "third_party\Turnable\pkg\connection\mux.go"
 
 if (!(Test-Path $Mux)) {
     throw "mux.go not found: $Mux"
@@ -9,12 +9,24 @@ if (!(Test-Path $Mux)) {
 
 $txt = Get-Content -Raw $Mux
 
-if ($txt -notmatch "muxHealthLogInterval") {
-    $txt = [regex]::Replace(
-        $txt,
-        '(muxPingTimeout\s*=\s*10\s*\*\s*time\.Second)',
-        "`$1`r`n`r`n`t// muxHealthLogInterval limits debug health logs emitted by the client`r`n`t// when it receives pong replies from the peer.`r`n`tmuxHealthLogInterval = 10 * time.Second"
-    )
+if ($txt -notmatch "\bmuxHealthLogInterval\s*=") {
+    if ($txt -match '(?m)^(\s*)(muxPingTimeout\s*=\s*.+)$') {
+        $txt = [regex]::Replace(
+            $txt,
+            '(?m)^(\s*)(muxPingTimeout\s*=\s*.+)$',
+            "`$1`$2`r`n`$1`r`n`$1// muxHealthLogInterval limits debug health logs emitted by the client.`r`n`$1muxHealthLogInterval = 10 * time.Second",
+            1
+        )
+    } elseif ($txt -match '(?m)^(\s*)(muxPingInterval\s*=\s*.+)$') {
+        $txt = [regex]::Replace(
+            $txt,
+            '(?m)^(\s*)(muxPingInterval\s*=\s*.+)$',
+            "`$1`$2`r`n`$1`r`n`$1// muxHealthLogInterval limits debug health logs emitted by the client.`r`n`$1muxHealthLogInterval = 10 * time.Second",
+            1
+        )
+    } else {
+        throw "Could not find mux ping const line to insert muxHealthLogInterval"
+    }
 }
 
 if ($txt -notmatch "lastHealthLog\s+atomic\.Int64") {
@@ -80,4 +92,4 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Patch applied successfully:"
-git -C (Join-Path $Root "third_party\Turnable") diff -- pkg/internal/connection/mux.go
+git -C (Join-Path $Root "third_party\Turnable") diff -- pkg/connection/mux.go
