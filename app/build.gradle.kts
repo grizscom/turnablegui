@@ -15,8 +15,8 @@ defaultConfig {
     applicationId = "ru.pnx.turnablegui"
     minSdk = 26
     targetSdk = 36
-    versionCode = 3
-    versionName = "0.1.2-ovpn"
+    versionCode = 4
+    versionName = "0.1.3-ovpn"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 }
