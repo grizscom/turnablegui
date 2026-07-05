@@ -1,6 +1,7 @@
 package ru.pnx.turnablegui
 
 import android.Manifest
+import android.graphics.Color
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -10,8 +11,10 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.SystemBarStyle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,7 +50,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import android.app.PendingIntent
 
 class MainActivity : ComponentActivity() {
 
@@ -58,6 +60,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        configureSystemBars()
 
         setContent {
             MaterialTheme {
@@ -74,6 +77,19 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= 33) {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+    }
+
+    private fun configureSystemBars() {
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                scrim = Color.WHITE,
+                darkScrim = Color.WHITE
+            ),
+            navigationBarStyle = SystemBarStyle.light(
+                scrim = Color.WHITE,
+                darkScrim = Color.WHITE
+            )
+        )
     }
 }
 
@@ -175,6 +191,10 @@ private fun TurnableScreen(
         mutableStateOf(TurnableProcess.statusSnapshot().healthyLine)
     }
 
+    var manualCaptchaRequest by remember {
+        mutableStateOf(TurnableProcess.manualCaptchaRequest())
+    }
+
     val pageScrollState = rememberScrollState()
     val logScrollState = rememberScrollState()
 
@@ -199,6 +219,7 @@ private fun TurnableScreen(
             connectionResponseLine = snapshot.responseLine
             connectionHealthyLine = snapshot.healthyLine
             lastErrorText = snapshot.lastError ?: ""
+            manualCaptchaRequest = TurnableProcess.manualCaptchaRequest()
 
             logText = TurnableProcess.readLog(context)
 
@@ -267,6 +288,16 @@ private fun TurnableScreen(
                     )
                 }
             }
+        }
+
+        manualCaptchaRequest?.let { request ->
+            ManualCaptchaCard(
+                request = request,
+                onDismiss = {
+                    TurnableProcess.clearManualCaptchaRequest()
+                    manualCaptchaRequest = null
+                }
+            )
         }
 
         Card(

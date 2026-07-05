@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 $ThirdParty = Join-Path $Root "third_party"
 $TurnableDir = Join-Path $ThirdParty "Turnable"
+$TurnableRef = "0.5.1"
 
 $Arm64OutDir = Join-Path $Root "app\src\main\jniLibs\arm64-v8a"
 $ArmOutDir = Join-Path $Root "app\src\main\jniLibs\armeabi-v7a"
@@ -61,9 +62,18 @@ if (!(Test-Path $TurnableDir)) {
     git clone https://github.com/TheAirBlow/Turnable.git $TurnableDir
 } else {
     Push-Location $TurnableDir
-    git pull
+    git fetch --tags --prune
     Pop-Location
 }
+
+Push-Location $TurnableDir
+git checkout $TurnableRef
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to checkout Turnable $TurnableRef"
+}
+Write-Host "Using Turnable:"
+git describe --tags --always
+Pop-Location
 
 # Удаляем старые бинарники, чтобы случайно не упаковать старую CGO_ENABLED=0 сборку.
 Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $Arm64OutDir "libturnable.so")

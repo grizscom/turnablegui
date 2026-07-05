@@ -1,10 +1,17 @@
 $ErrorActionPreference = "Stop"
 
 $Root = Split-Path -Parent $PSScriptRoot
-$Mux = Join-Path $Root "third_party\Turnable\pkg\connection\mux.go"
+$TurnableDir = Join-Path $Root "third_party\Turnable"
+$Mux = Join-Path $TurnableDir "pkg\connection\mux.go"
+$MuxDiffPath = "pkg/connection/mux.go"
 
 if (!(Test-Path $Mux)) {
-    throw "mux.go not found: $Mux"
+    $Mux = Join-Path $TurnableDir "pkg\internal\connection\mux.go"
+    $MuxDiffPath = "pkg/internal/connection/mux.go"
+}
+
+if (!(Test-Path $Mux)) {
+    throw "mux.go not found in Turnable pkg\connection or pkg\internal\connection"
 }
 
 $txt = Get-Content -Raw $Mux
@@ -92,4 +99,4 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Patch applied successfully:"
-git -C (Join-Path $Root "third_party\Turnable") diff -- pkg/connection/mux.go
+git -C $TurnableDir diff -- $MuxDiffPath
