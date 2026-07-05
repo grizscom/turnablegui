@@ -1,6 +1,7 @@
 package ru.pnx.turnablegui
 
 import android.Manifest
+import android.graphics.Color
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -48,6 +49,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import android.app.PendingIntent
+import android.annotation.SuppressLint
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 
 class MainActivity : ComponentActivity() {
 
@@ -58,6 +66,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        configureSystemBars()
 
         setContent {
             MaterialTheme {
@@ -75,6 +84,20 @@ class MainActivity : ComponentActivity() {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
+
+    private fun configureSystemBars() {
+	    enableEdgeToEdge(
+        	statusBarStyle = SystemBarStyle.light(
+        	    	scrim = Color.WHITE,
+            		darkScrim = Color.WHITE
+	        ),
+        	navigationBarStyle = SystemBarStyle.light(
+	            scrim = Color.WHITE,
+	            darkScrim = Color.WHITE
+	        )
+	    )
+    }
+
 }
 
 @Composable
@@ -163,6 +186,10 @@ private fun TurnableScreen(
         mutableStateOf(TurnableProcess.statusSnapshot().healthyLine)
     }
 
+    var manualCaptchaRequest by remember {
+    	mutableStateOf(TurnableProcess.manualCaptchaRequest())
+    }
+
     val pageScrollState = rememberScrollState()
     val logScrollState = rememberScrollState()
 
@@ -187,6 +214,7 @@ private fun TurnableScreen(
             connectionResponseLine = snapshot.responseLine
             connectionHealthyLine = snapshot.healthyLine
             lastErrorText = snapshot.lastError ?: ""
+	    manualCaptchaRequest = TurnableProcess.manualCaptchaRequest()
 
             logText = TurnableProcess.readLog(context)
 
@@ -256,6 +284,16 @@ private fun TurnableScreen(
                 }
             }
         }
+
+	manualCaptchaRequest?.let { request ->
+    		ManualCaptchaCard(
+	        request = request,
+		        onDismiss = {
+		            TurnableProcess.clearManualCaptchaRequest()
+		            manualCaptchaRequest = null
+	        	}
+    		)
+	}
 
         Card(
             modifier = Modifier

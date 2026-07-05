@@ -30,6 +30,13 @@ data class TurnableStatus(
     val lastError: String?
 )
 
+data class ManualCaptchaRequest(
+    val url: String,
+    val guideUrl: String,
+    val userScriptUrl: String,
+    val createdAtMs: Long
+)
+
 object TurnableProcess {
     private val logLock = Any()
 
@@ -75,6 +82,9 @@ object TurnableProcess {
     @Volatile
     private var sessionStartedAtWallMs: Long = 0L
 
+    @Volatile
+    private var manualCaptchaRequest: ManualCaptchaRequest? = null
+
     fun isRunning(): Boolean {
         return process?.isAlive == true
     }
@@ -110,6 +120,7 @@ object TurnableProcess {
         lastError = null
         lastHealthyAt = 0L
         lastRttMs = null
+	manualCaptchaRequest = null
         sessionStartedAtWallMs = System.currentTimeMillis()
         childPid = null
         pidFile.delete()
@@ -186,17 +197,27 @@ object TurnableProcess {
         if (p == null || !p.isAlive) {
             process = null
             childPid = null
+	    manualCaptchaRequest = null
             setState(TurnableConnectionState.STOPPED)
             sessionStartedAtWallMs = 0L
             appendLog(logFile, "Stop requested, but Turnable is not running")
             return "Turnable не запущен"
         }
 
+	manualCaptchaRequest = null
         appendLog(logFile, "Stopping Turnable")
         stopProcessOnly(appContext, logFile)
         setState(TurnableConnectionState.STOPPED)
 
         return "Turnable остановлен"
+    }
+
+    fun manualCaptchaRequest(): ManualCaptchaRequest? {
+    	return manualCaptchaRequest
+    }
+
+    fun clearManualCaptchaRequest() {
+    	manualCaptchaRequest = null
     }
 
     @Synchronized
@@ -530,6 +551,17 @@ object TurnableProcess {
             lastRttMs = extractRttMs(line)
         }
 
+	if (lower.contains("manual captcha solve required")) {
+    		manualCaptchaRequest = ManualCaptchaRequest(
+	        	url = extractLogField(line, "url"),
+        		guideUrl = extractLogField(line, "guide").ifBlank { "http://127.0.0.1:1984/" },
+        		userScriptUrl = extractLogField(line, "userscript").ifBlank {
+            					"http://127.0.0.1:1984/vk_manual_captcha.user.js"
+        				},
+	        	createdAtMs = now
+    		)
+	}
+
         when {
             lower.contains("tinymux client health ok") ||
                 lower.contains("turnable client started") ||
@@ -540,6 +572,7 @@ object TurnableProcess {
                 lower.contains("channel opened") -> {
                 lastHealthyAt = now
                 lastError = null
+		manualCaptchaRequest = null
                 setState(TurnableConnectionState.CONNECTED)
             }
 
@@ -662,6 +695,14 @@ object TurnableProcess {
             ?.groupValues
             ?.getOrNull(1)
             ?.toLongOrNull()
+    }
+
+    private fun extractLogField(line: String, key: String): String {
+    	    val pattern = Regex("""(?:^|\s)$key=(?:"([^"]*)"|(\S+))""")
+	    val match = pattern.find(line) ?: return ""
+    		return match.groupValues.getOrNull(1)?.ifBlank {
+        			match.groupValues.getOrNull(2).orEmpty()
+    		       }.orEmpty()
     }
 
     private fun cleanTurnableLog(raw: String): String {
