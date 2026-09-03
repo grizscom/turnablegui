@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
@@ -15,8 +15,8 @@ android {
         applicationId = "ru.pnx.turnablegui"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "0.1.4-ovpn"
+        versionCode = 8
+        versionName = "0.1.5-ovpn"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -63,3 +63,4 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
+

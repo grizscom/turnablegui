@@ -3,7 +3,7 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 $ThirdParty = Join-Path $Root "third_party"
 $TurnableDir = Join-Path $ThirdParty "Turnable"
-$TurnableRef = "0.5.1"
+$TurnableRef = "origin/main"
 
 $Arm64OutDir = Join-Path $Root "app\src\main\jniLibs\arm64-v8a"
 $ArmOutDir = Join-Path $Root "app\src\main\jniLibs\armeabi-v7a"

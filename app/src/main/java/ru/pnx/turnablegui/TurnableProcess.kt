@@ -1,4 +1,4 @@
-package ru.pnx.turnablegui
+﻿package ru.pnx.turnablegui
 
 import android.content.Context
 import java.io.File
@@ -106,7 +106,7 @@ object TurnableProcess {
         val appContext = context.applicationContext
 
         if (isRunning()) {
-            return "Turnable уже запущен"
+            return "Turnable СѓР¶Рµ Р·Р°РїСѓС‰РµРЅ"
         }
 
         val binary = File(appContext.applicationInfo.nativeLibraryDir, "libturnable.so")
@@ -138,7 +138,7 @@ object TurnableProcess {
         }
 
         if (!binary.exists()) {
-            val msg = "Бинарник не найден: ${binary.absolutePath}"
+            val msg = "Р‘РёРЅР°СЂРЅРёРє РЅРµ РЅР°Р№РґРµРЅ: ${binary.absolutePath}"
             lastError = msg
             setState(TurnableConnectionState.ERROR)
             appendLog(logFile, msg)
@@ -169,7 +169,7 @@ object TurnableProcess {
 
         process = builder.start()
 
-        val currentProcess = process ?: return "Не удалось создать процесс"
+        val currentProcess = process ?: return "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ РїСЂРѕС†РµСЃСЃ"
         childPid = waitForPidFile(pidFile, timeoutMs = 1_000L)
 
         Thread {
@@ -189,7 +189,7 @@ object TurnableProcess {
         )
 
         val pidPart = childPid?.let { ", PID=$it" } ?: ""
-        return "Turnable запущен$pidPart"
+        return "Turnable Р·Р°РїСѓС‰РµРЅ$pidPart"
     }
 
     @Synchronized
@@ -205,7 +205,7 @@ object TurnableProcess {
             setState(TurnableConnectionState.STOPPED)
             sessionStartedAtWallMs = 0L
             appendLog(logFile, "Stop requested, but Turnable is not running")
-            return "Turnable не запущен"
+            return "Turnable РЅРµ Р·Р°РїСѓС‰РµРЅ"
         }
 
         manualCaptchaRequest = null
@@ -213,7 +213,7 @@ object TurnableProcess {
         stopProcessOnly(appContext, logFile)
         setState(TurnableConnectionState.STOPPED)
 
-        return "Turnable остановлен"
+        return "Turnable РѕСЃС‚Р°РЅРѕРІР»РµРЅ"
     }
 
     fun manualCaptchaRequest(): ManualCaptchaRequest? {
@@ -262,7 +262,7 @@ object TurnableProcess {
 
     fun readLog(context: Context, maxBytes: Int = 64 * 1024): String {
         val file = getLogFile(context.applicationContext)
-        if (!file.exists()) return "Лога пока нет"
+        if (!file.exists()) return "Р›РѕРіР° РїРѕРєР° РЅРµС‚"
 
         val bytes = file.readBytes()
         val start = (bytes.size - maxBytes).coerceAtLeast(0)
@@ -285,7 +285,7 @@ object TurnableProcess {
 
     fun rawLogForShare(context: Context, maxBytes: Int = 256 * 1024): String {
         val file = getLogFile(context.applicationContext)
-        if (!file.exists()) return "Лога пока нет"
+        if (!file.exists()) return "Р›РѕРіР° РїРѕРєР° РЅРµС‚"
 
         val bytes = file.readBytes()
         val start = (bytes.size - maxBytes).coerceAtLeast(0)
@@ -302,11 +302,11 @@ object TurnableProcess {
 
         return when (snapshot.state) {
             TurnableConnectionState.STOPPED -> {
-                "Остановлен"
+                "РћСЃС‚Р°РЅРѕРІР»РµРЅ"
             }
 
             TurnableConnectionState.CONNECTING -> {
-                "Подключается..."
+                "РџРѕРґРєР»СЋС‡Р°РµС‚СЃСЏ..."
             }
 
             TurnableConnectionState.CONNECTED -> {
@@ -319,7 +319,7 @@ object TurnableProcess {
                     .removePrefix("Healthy: ")
                     .replace("waiting...", "waiting")
 
-                "On · Delay $response · Healthy $healthy"
+                "On В· Delay $response В· Healthy $healthy"
             }
 
             TurnableConnectionState.RECONNECTING -> {
@@ -327,11 +327,11 @@ object TurnableProcess {
                     .removePrefix("Healthy: ")
                     .replace("waiting...", "waiting")
 
-                "Переподключение · healthy $healthy"
+                "РџРµСЂРµРїРѕРґРєР»СЋС‡РµРЅРёРµ В· healthy $healthy"
             }
 
             TurnableConnectionState.ERROR -> {
-                "Ошибка подключения"
+                "РћС€РёР±РєР° РїРѕРґРєР»СЋС‡РµРЅРёСЏ"
             }
         }
     }
@@ -371,7 +371,7 @@ object TurnableProcess {
 
         val gatewayLine = when {
             state == TurnableConnectionState.STOPPED -> "Gateway: stopped"
-            lastGateway.isNullOrBlank() -> "Gateway: неизвестен"
+            lastGateway.isNullOrBlank() -> "Gateway: РЅРµРёР·РІРµСЃС‚РµРЅ"
             else -> "Gateway: $lastGateway"
         }
 
@@ -572,7 +572,7 @@ object TurnableProcess {
                 url = extractLogField(line, "url"),
                 guideUrl = extractLogField(line, "guide").ifBlank { "http://127.0.0.1:1984/" },
                 userScriptUrl = extractLogField(line, "userscript").ifBlank {
-                    "http://127.0.0.1:1984/vk_manual_captcha.user.js"
+                    "http://127.0.0.1:1984/captcha_manual.user.js"
                 },
                 createdAtMs = now
             )
@@ -797,3 +797,4 @@ object TurnableProcess {
         }
     }
 }
+
